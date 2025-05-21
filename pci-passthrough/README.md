@@ -1,15 +1,19 @@
 Derived from the nvidia and Red Hat docs here:
 
- https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/openshift-virtualization.html#creating-a-clusterpolicy-for-the-gpu-operator-using-the-openshift-container-platform-cli
+https://docs.nvidia.com/datacenter/cloud-native/openshift/latest/openshift-virtualization.html#creating-a-clusterpolicy-for-the-gpu-operator-using-the-openshift-container-platform-cli
 
 https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/virtualization/virtual-machines#virt-adding-kernel-arguments-enable-IOMMU_virt-configuring-pci-passthrough
+
+
+NOTE: The most common issue with PCI passthrough is that the nvidia kernel module is loaded on a host which claims the devices instead of vfio claiming the devices.
+      A GPU device at the OS level cannot be managed by both the nvidia kernel module and the vfio module at the same time.
 
 
 - Enable IOMMU in the kernel
 ```console
 oc create -f 100-worker-kernel-arg-iommu.yaml
 ```
-
+- Wait for the machine config pool to finish updating the cluster nodes
 ```console
 oc get machineconfigpool
 ```
@@ -27,18 +31,22 @@ Note: This example assumes all the GPU devices are the same across nodes. If the
 oc debug node/my-node -- chroot /host lspci -nnv | grep -i nvidia
 ```
 
+- Create a butane config that includes the device ID(s) from the previous lspci command and convert to a machine config yaml
 ```console
 butane 100-worker-vfiopci.bu -o 100-worker-vfiopci.yaml
 ```
 
+- Apply the vfio machine config
 ```console
 oc apply -f 100-worker-vfiopci.yaml
 ```
 
+- Wait for the machine config pool to finish updating the cluster nodes
 ```console
 oc get machineconfigpool
 ```
 
+- Update the hyper converged object to specify the pass through devices
 ```console
 oc edit hyperconverged kubevirt-hyperconverged -n openshift-cnv
 ```
@@ -62,6 +70,7 @@ spec:
 # ...
 ```
 
+- Check the nodes to see they now have passthrough device capacity with the updates to the hyper converged CR above
 ```console
 oc describe node <node_name>
 ```
