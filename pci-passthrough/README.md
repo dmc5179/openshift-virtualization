@@ -8,6 +8,11 @@ https://docs.redhat.com/en/documentation/openshift_container_platform/4.17/html/
 NOTE: The most common issue with PCI passthrough is that the nvidia kernel module is loaded on a host which claims the devices instead of vfio claiming the devices.
       A GPU device at the OS level cannot be managed by both the nvidia kernel module and the vfio module at the same time.
 
+- Deploy the GPU operator
+- Deploy the OpenShift Virt Operator
+- Deploy a cluster policy for the GPU Operator
+- Create a HyperConverged instance for the OpenShift Virt Operator
+
 
 - Enable IOMMU in the kernel
 ```console
