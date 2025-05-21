@@ -1,0 +1,21 @@
+variant: openshift
+version: 4.18.0
+metadata:
+  name: 100-worker-vfiopci
+  labels:
+    machineconfiguration.openshift.io/role: worker
+storage:
+  files:
+  - path: /etc/modprobe.d/vfio.conf
+    mode: 0644
+    overwrite: true
+    contents:
+      inline: |
+        options vfio-pci ids=10de:1eb8
+        options vfio-pci ids=10de:2eb8
+  - path: /etc/modules-load.d/vfio-pci.conf
+    mode: 0644
+    overwrite: true
+    contents:
+      inline: vfio-pci
+
